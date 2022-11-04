@@ -27,8 +27,9 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
-    Config {},
+    Config {}, // get state, tells us the configurations
 }
 
 // We define a custom struct for each query response
+// ConfigResponse is just the state
 pub type ConfigResponse = State;
