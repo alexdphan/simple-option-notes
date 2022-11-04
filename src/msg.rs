@@ -8,6 +8,7 @@ pub struct InstantiateMsg {
     // collateral comes from env (how much was sent)
     pub counter_offer: Vec<Coin>,
     pub expires: u64,
+    // We are saying the counter_offer is a Vec<Coin> and expires is a u64
 }
 
 #[cw_serde]
