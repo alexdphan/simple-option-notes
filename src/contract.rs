@@ -9,29 +9,40 @@ use crate::state::{State, CONFIG};
 #[entry_point]
 pub fn instantiate(
     deps: DepsMut,
-    env: Env,
+    env: Env, // env tells us all the information about the blockchain state; trusted
     info: MessageInfo,
-    msg: InstantiateMsg,
+    msg: InstantiateMsg, // takes init message; not trusted, comes from user so its fine to use
+                         // You can think of this as the address that initiated the action (i.e. the message).
 ) -> Result<Response, ContractError> {
+    // returns response
+    // InitResponse can add logging information, can return data stored in the blockchain, and can trigger other messages
+    // here we are taking the state and making the state object
     if msg.expires <= env.block.height {
         return Err(ContractError::OptionExpired {
             expired: msg.expires,
         });
     }
 
+    // Initialization
     let state = State {
+        // setting the state
+        // If you are using something more than once, you pass clone() to it
+        // You can think of this as the address that initiated the action (i.e. the message (info: MessageInfo)).
         creator: info.sender.clone(),
         owner: info.sender.clone(),
-        collateral: info.funds,
+        collateral: info.funds, // how much money sent; sent funds directly to the contract from creator
         counter_offer: msg.counter_offer,
         expires: msg.expires,
+        // counter_offer and expires are from the message, from which the struct InstantiateMsg is made; the counter_offer is a Vec<Coin> and expires is a u64
     };
 
     CONFIG.save(deps.storage, &state)?;
 
     Ok(Response::default())
+    // saving it and saying everything checks out
 }
 
+// boilerplate
 #[entry_point]
 pub fn execute(
     deps: DepsMut,
@@ -46,19 +57,20 @@ pub fn execute(
     }
 }
 
+// look at the boilerplate above
 pub fn execute_transfer(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
     recipient: String,
 ) -> Result<Response, ContractError> {
-    // ensure msg sender is the owner
+    // loaded stats, ensure msg sender is the owner
     let mut state = CONFIG.load(deps.storage)?;
     if info.sender != state.owner {
         return Err(ContractError::Unauthorized {});
     }
 
-    // set new owner on state
+    // set new owner on state, saved state
     state.owner = deps.api.addr_validate(&recipient)?;
     CONFIG.save(deps.storage, &state)?;
 
@@ -101,6 +113,7 @@ pub fn execute_execute(
     });
 
     // release collateral to sender
+    // BankMsg::Send is a message that can be sent to the blockchain (sending money)
     res = res.add_message(BankMsg::Send {
         to_address: state.owner.to_string(),
         amount: state.collateral,
@@ -150,7 +163,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state = CONFIG.load(deps.storage)?;
-    Ok(state)
+    Ok(state) // return Ok(state)
 }
 
 #[cfg(test)]

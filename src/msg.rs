@@ -18,7 +18,7 @@ pub enum ExecuteMsg {
     /// Owner can transfer to a new owner
     Transfer { recipient: String }, // we say the recipient is a strong, which is an address
     /// Owner can post counter_offer on unexpired option to execute and get the collateral
-    Execute {}, // We can execute the option which takes nothing. You must pay an amount to it to 
+    Execute {}, // We can execute the option which takes nothing. You must pay an amount to it to
     /// Burn will release collateral if expired
     Burn {},
 }
